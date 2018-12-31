@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block content %}
+
+
+<h1>Solr ranking analysis</h1>
+
+<form action="" method="get">
+{{form}}
+<input type="submit" class="button" value="Analyze ranking">
+</form>
+
+<ul class="tabs" data-tabs id="tabs">
+	<li class="tabs-title is-active"><a href="#summary" aria-selected="true">Summarization</a></li>
+	<li class="tabs-title"><a data-tabs-target="visualization" href="#visualization">Visualization</a></li>
+	<li class="tabs-title"><a data-tabs-target="query" href="#query">Query details</a></li>
+	<li class="tabs-title"><a data-tabs-target="ranking" href="#ranking">Ranking details</a></li>
+</ul>
+
+<div class="tabs-content" data-tabs-content="example-tabs">
+
+
+	<div class="tabs-panel is-active" id="summary">
+
+<h2>Summary</h2>
+
+<h3>Relevant fields and their boost</h3>
+Field boost config of mosted relevant searched and matched fields:
+
+<ul>
+{% for field, values in fields.items %}
+
+<li style="display: inline-block;">
+<strong>{{ field }}</strong> (boost: &lowast;{{values.boost}}) <div style="display: inline-block; background-color: {{ values.color }}; height: {{ values.boost }}px; width: {{ values.boost }}px;"></div>
+
+</li>
+
+
+{% endfor %}
+</ul>
+
+<h3>Summarization of ranking, scoring and term & field weights</h3>
+<p>Highest scored {{ count_docs }} of {{ numFound }} found documents:</p>
+
+
+<table>
+
+{% for doc in docs %}
+
+
+<tr>
+    <td colspan="3">
+<hr>
+
+<p><small>ID: <a href="{{ doc.id }}">{{ doc.id }}</a></small></p>
+
+Terms: {% for entry in doc.summarization %}+<div style="display: inline-block; background-color: {{entry.fieldcolor}}; height: 20px; width: {{ entry.score_scaled }}px;">{{ entry.term }}</div>{% endfor %}
+    </td>
+</tr>
+
+
+
+<tr>
+<td>
+Score:<br>
+{{ doc.score }}
+</td>
+
+
+
+<td>
+
+    <ul>
+	{% for entry in doc.summarization %}
+
+	<li><small>Weight</small> {{ entry.score }} <small>from</small> <strong><i><span style="color: {{entry.fieldcolor}};">{{ entry.term }}</span></i></strong> <small>(tfNorm: {{entry.tfNorm}}  &lowast; idf: {{ entry.idf }})</small> in <span style="color: {{entry.fieldcolor}};"><strong>{{ entry.fieldname }}</strong></span><small> (field boost: &lowast;{{ entry.boost }})</small></li>
+	{% endfor %}
+    </ul>
+
+</td>
+
+<td>
+<a class="button tiny" href="#{{doc.id}}">Show details</a>
+</td>
+
+</tr>
+
+
+
+
+{% endfor %}
+
+</table>
+
+
+
+<div class="tabs-panel" id="query">
+
+<h2>Solr query</h2>
+<p><i><a target="_blank" href="{{query}}">{{query}}</a></i></p>
+
+<h3>Parsed query</h3>
+<p><i>{{parsed_query}}</i></p>
+
+</div>
+
+
+<div class="tabs-panel" id="ranking">
+
+<h2>Ranking details</h2>
+{% for doc in docs %}
+
+<a name="{{doc.id}}"></a>
+<h4>{{doc.id}}</h4>
+
+<pre>
+    {{doc.explain}}
+</pre>
+{% endfor %}
+
+</div>
+
+<div class="tabs-panel" id="visualization">
+
+<h2>Visualization of ranking/scoring/term weights</h2>
+
+<p>
+Most relevant searched and matched fields: 
+{% for field, values in fields.items %}
+
+<span style="background-color: {{values.color}};"><strong><i>{{ field }}</i></strong> (boost: {{values.boost}})</span>
+{% endfor %}
+</p>
+
+<p>Ranked documents scored by sum of term weights from most weighted fields matching the query:</p>
+
+{% for doc in docs %}
+<hr>
+
+<small>Score: {{doc.score}} - ID: <a href="{{ doc.id }}">{{ doc.id }}</a></small><br>
+
+{% for entry in doc.summarization %}+<div style="display: inline-block; background-color: {{entry.fieldcolor}}; height: 20px; width: {{ entry.score_scaled }}px;">{{ entry.term }}</div>{% endfor %}
+
+
+{% endfor %}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+{% endblock content %}
