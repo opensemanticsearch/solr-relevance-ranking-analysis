@@ -1,0 +1,4 @@
+{
+    "solr": ["http://localhost:8983/solr"],
+    "title_fields": ["title", "titles", "title_s", "title_ss", "title_txt"]
+}

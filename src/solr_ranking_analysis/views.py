@@ -6,6 +6,7 @@ from django import forms
 
 import json
 import requests
+import os.path
 
 
 class SearchForm(forms.Form):
@@ -60,7 +61,7 @@ def scale_score(fullsize, value, maxvalue):
 
 	scaled = round( fullsize/maxvalue * ( value ), 0)
 
-	print ('full: {}, value: {}, maxvalue: {}, scaled: {}'.format(fullsize, value, maxvalue, scaled))
+	# print ('full: {}, value: {}, maxvalue: {}, scaled: {}'.format(fullsize, value, maxvalue, scaled))
 
 	return scaled
 
@@ -192,6 +193,20 @@ def summarize_fields(nodes,fields={}):
 	return fields
 
 def index(request):
+
+	# default settings, do not edit here, use the config file
+	config = {
+				'solr': ['http://localhost:8983/solr/'] 
+			}
+
+	# read config from config file
+	configfilename = '/etc/opensemanticsearch/apps/ranking_analysis/config.json'
+	if os.path.isfile(configfilename):
+		
+		f = open(configfilename)
+		config = json.load(f)
+		f.close()
+
 
 	form = SearchForm(request.GET) # A form bound to the POST data
 	if form.is_valid():
@@ -350,7 +365,18 @@ def index(request):
     
 			doc_analysis['score'] = round(score ,2)
 			doc_analysis['explain'] = docexplain
-    
+
+			# document title
+			doc_analysis['title_field'] = None
+			doc_analysis['title'] = None
+
+			if 'title_fields' in config:
+				for title_field in config['title_fields']:
+					if title_field in doc:
+						doc_analysis['title_field'] = title_field
+						doc_analysis['title'] = doc[title_field]
+						break
+			
 			docs.append(doc_analysis)
     
 	return render(request, 'solr_ranking_analysis/solr_ranking_analysis.html', 

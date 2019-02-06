@@ -77,7 +77,12 @@ Field boost config of most relevant searched and matched fields and color map of
     <td colspan="3">
 <hr>
 
-<p><small>ID: <a href="{{ doc.id }}">{{ doc.id }}</a></small></p>
+<p><small>ID: <a href="{{ doc.id }}">{{ doc.id }}</a>
+
+{% if doc.title %}
+ | {{doc.title_field}}: {{doc.title}}
+{% endif %}
+</small></p>
 
 Terms: {% for entry in doc.summarization %}+<div style="display: inline-block; background-color: {{entry.fieldcolor}}; height: 20px; width: {{ entry.score_scaled }}px;">{{ entry.term }}</div>{% endfor %}
     </td>
@@ -192,6 +197,9 @@ Score:<br>
 
 <a name="{{doc.id}}"></a>
 <h4>{{doc.id}}</h4>
+{% if doc.title %}
+{{doc.title_field}}: {{doc.title}}
+{% endif %}
 
 <pre>
     {{doc.explain}}
@@ -236,12 +244,16 @@ Boost functions:
 {% endif %}
 </p>
 
-<p>Ranked documents scored by sum of term weights from most weighted fields matching the query:</p>
+<p>Ranked documents scored by sum of term weights from most weighted fields matching the query and (optional) boost functions:</p>
 
 {% for doc in docs %}
 <hr>
 
-<small>Score: {{doc.score}} - ID: <a href="{{ doc.id }}">{{ doc.id }}</a></small><br>
+<small>Score: {{doc.score}} - ID: <a href="{{ doc.id }}">{{ doc.id }}</a>
+{% if doc.title %}
+ | {{doc.title_field}}: {{doc.title}}
+{% endif %}
+</small><br>
 
 {% for entry in doc.summarization %}+<div style="display: inline-block; background-color: {{entry.fieldcolor}}; height: 20px; width: {{ entry.score_scaled }}px;">{{ entry.term }}</div>{% endfor %}
 
