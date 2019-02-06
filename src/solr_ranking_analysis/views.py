@@ -103,26 +103,46 @@ def summarize(nodes, fields, maxscore):
 	summarized_score = 0
 
 	for node in nodes:
-		if 'type' in node:
-			if node['type'] == 'weight' and not 'inactive' in node:
+		if not 'inactive' in node:
 
-				summarized_score += node['numvalue']
+			if 'type' in node:
+				
+				if node['type'] == 'weight':
+	
+					summarized_score += node['numvalue']
+	
+					boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
+					data = {}
+					data['term'] = node['term']
+					data['fieldname'] = node['fieldname']
+	
+					fieldname = node['fieldname']
+					if fieldname in fields:
+						data['fieldcolor'] = fields[fieldname]['color']
 
-				boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
-				fieldname = node['fieldname']
-				data = {}
-				data['term'] = node['term']
-				data['fieldname'] = node['fieldname']
+					data['score'] = round( node['numvalue'], 2)
+					data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
+					data['boost'] = boost
+					data['idf'] = idf
+					data['tfNorm'] = tfNorm
+	
+					summarization.append(data)
 
-				if fieldname in fields:
-					data['fieldcolor'] = fields[fieldname]['color']
-				data['score'] = round( node['numvalue'], 2)
-				data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
-				data['boost'] = boost
-				data['idf'] = idf
-				data['tfNorm'] = tfNorm
-
-				summarization.append(data)
+				if node['type'] == 'FunctionQuery':
+	
+					summarized_score += node['numvalue']
+	
+					data = {}
+					data['term'] = node['function_query']
+					data['fieldname'] = 'FunctionQuery'
+	
+					fieldname = node['function_query']
+					if fieldname in fields:
+						data['fieldcolor'] = fields[fieldname]['color']
+					data['score'] = round( node['numvalue'], 2)
+					data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
+	
+					summarization.append(data)
 
 
 	#if round(summarized_score,4) < round(score,4):
@@ -135,25 +155,39 @@ def summarize(nodes, fields, maxscore):
 
 def summarize_fields(nodes,fields={}):
 
-	colors = ['#00ff00', '#ffff00']
+	colors = ['#FF8C00', '#E9967A', '#B8860B', '#8B008B', '#8FBC8F', '#483D8B', '#00CED1', '#9400D3', '#B22222', '#DAA520', '#FF69B4', '#FFFFFF']
 
 	for node in nodes:
 		if 'type' in node:
-			if node['type'] == 'weight' and not 'inactive' in node:
-
-				fieldname = node['fieldname']
-				if not fieldname in fields:
-
-					fields[fieldname] = {}
-
-					boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
-
-					fields[fieldname]['boost'] = boost
-					colorindex = len(fields)-1
-					if colorindex > len(colors)-1:
-						colorindex = len(colors)-1
-
-					fields[fieldname]['color'] = colors[colorindex]
+			if not 'inactive' in node:
+				if node['type'] == 'weight':
+	
+					fieldname = node['fieldname']
+					if not fieldname in fields:
+	
+						fields[fieldname] = {}
+	
+						boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
+	
+						fields[fieldname]['boost'] = boost
+						colorindex = len(fields)-1
+						if colorindex > len(colors)-1:
+							colorindex = len(colors)-1
+	
+						fields[fieldname]['color'] = colors[colorindex]
+						
+				if node['type'] == 'FunctionQuery':
+	
+					fieldname = node['function_query']
+					if not fieldname in fields:
+	
+						fields[fieldname] = {}
+	
+						colorindex = len(fields)-1
+						if colorindex > len(colors)-1:
+							colorindex = len(colors)-1
+	
+						fields[fieldname]['color'] = colors[colorindex]
 
 	return fields
 
@@ -167,9 +201,16 @@ def index(request):
 	numFound = None
 	docs = None
 	explain = None
+	querystring = None
 	parsed_query = None
 	count_docs = 0
 	fields = None
+	boostfuncs = None
+	boost_queries = None
+	parsed_boost_queries = None
+	filter_queries = None
+	parsed_filter_queries = None
+	timing = None
 
 	if query:
 
@@ -192,6 +233,26 @@ def index(request):
     	
     	
 		parsed_query = r['debug']['parsedquery']
+
+		if 'querystring' in r['debug']:
+			querystring = r['debug']['querystring']
+		
+		if 'boostfuncs' in r['debug']:
+			boostfuncs = r['debug']['boostfuncs']
+		
+		if 'boost_queries' in r['debug']:
+			boost_queries = r['debug']['boost_queries']
+		if 'parsed_boost_queries' in r['debug']:
+			parsed_boost_queries = r['debug']['parsed_boost_queries']
+
+		if 'filter_queries' in r['debug']:
+			filter_queries = r['debug']['filter_queries']
+		if 'parsed_filter_queries' in r['debug']:
+			parsed_filter_queries = r['debug']['parsed_filter_queries']
+
+		if 'timing' in r['debug']:
+			timing = r['debug']['timing']
+		
 		fields={}
 		docs=[]
 		maxscore = 0
@@ -241,6 +302,11 @@ def index(request):
     					
 					if ' = score' in line:
 						data['type'] = 'score'
+						
+					if ' = FunctionQuery' in line:
+						data['type'] = 'FunctionQuery'
+						prefix = ' = FunctionQuery('
+						data['function_query'] = line[line.find(prefix)+len(prefix) : line.rfind(')') ]
     
 					if ' = weight(' in line:
     	                
@@ -270,7 +336,11 @@ def index(request):
     	
 			# set children after the first child of max of to inactive            
 			analyzed_data, analyzed_results = maxof(data = nodes, results=[], parent=0)
+			
+			# get fields overview/weights
 			fields = summarize_fields(nodes=analyzed_results, fields=fields)
+			
+			# summarize document values
 			doc_summarization = summarize(analyzed_results, fields, maxscore)
     
 			doc_analysis = {}
@@ -289,7 +359,14 @@ def index(request):
     			"docs": docs,
     			"explain": explain,
     			"query": query,
+    			"querystring": querystring,
     			"parsed_query": parsed_query,
+    			"boostfuncs": boostfuncs,
+				"boost_queries": boost_queries,
+				"parsed_boost_queries": parsed_boost_queries,
+				"filter_queries": filter_queries,
+				"parsed_filter_queries": parsed_filter_queries,
+				"timing": timing,
     			"count_docs": count_docs,
     			"form": form,
                 "fields": fields,

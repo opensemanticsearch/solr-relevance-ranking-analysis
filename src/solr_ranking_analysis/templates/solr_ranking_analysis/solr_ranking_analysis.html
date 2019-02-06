@@ -11,8 +11,8 @@
 </form>
 
 <ul class="tabs" data-tabs id="tabs">
-	<li class="tabs-title is-active"><a href="#summary" aria-selected="true">Summarization</a></li>
-	<li class="tabs-title"><a data-tabs-target="visualization" href="#visualization">Visualization</a></li>
+	<li class="tabs-title is-active"><a href="#summary" aria-selected="true">Summarization (with visualization)</a></li>
+	<li class="tabs-title"><a data-tabs-target="visualization" href="#visualization">Visualization (more compact chart)</a></li>
 	<li class="tabs-title"><a data-tabs-target="query" href="#query">Query details</a></li>
 	<li class="tabs-title"><a data-tabs-target="ranking" href="#ranking">Ranking details</a></li>
 </ul>
@@ -24,20 +24,45 @@
 
 <h2>Summary</h2>
 
-<h3>Relevant fields and their boost</h3>
-Field boost config of mosted relevant searched and matched fields:
+<h3>Relevant fields and their boost factors</h3>
+Field boost config of most relevant searched and matched fields and color map of boost functions:
 
 <ul>
 {% for field, values in fields.items %}
+{% if values.boost %}
 
 <li style="display: inline-block;">
+
 <strong>{{ field }}</strong> (boost: &lowast;{{values.boost}}) <div style="display: inline-block; background-color: {{ values.color }}; height: {{ values.boost }}px; width: {{ values.boost }}px;"></div>
 
 </li>
+{% endif %}
 
 
 {% endfor %}
 </ul>
+
+{% if boostfuncs %}
+
+<h3>Boost functions</h3>
+
+<ul>
+{% for field, values in fields.items %}
+
+{% if not values.boost %}
+<li style="display: inline-block;">
+
+<span style="display: inline-block; background-color: {{ values.color }};"><strong>{{ field }}</strong></span>
+
+</li>
+
+{% endif %}
+
+
+{% endfor %}
+</ul>
+{% endif %}
+
 
 <h3>Summarization of ranking, scoring and term & field weights</h3>
 <p>Highest scored {{ count_docs }} of {{ numFound }} found documents:</p>
@@ -73,7 +98,15 @@ Score:<br>
     <ul>
 	{% for entry in doc.summarization %}
 
-	<li><small>Weight</small> {{ entry.score }} <small>from</small> <strong><i><span style="color: {{entry.fieldcolor}};">{{ entry.term }}</span></i></strong> <small>(tfNorm: {{entry.tfNorm}}  &lowast; idf: {{ entry.idf }})</small> in <span style="color: {{entry.fieldcolor}};"><strong>{{ entry.fieldname }}</strong></span><small> (field boost: &lowast;{{ entry.boost }})</small></li>
+	<li><small>Weight</small> {{ entry.score }} <small>from</small> <strong><i><span style="color: {{entry.fieldcolor}};">{{ entry.term }}</span></i></strong> 
+	{% if entry.tfNorm %}
+	    <small>(tfNorm: {{entry.tfNorm}}  &lowast; idf: {{ entry.idf }})</small>
+	{% endif %}
+	in <span style="color: {{entry.fieldcolor}};"><strong>{{ entry.fieldname }}</strong></span>
+	{% if entry.boost %}
+		<small> (field boost: &lowast;{{ entry.boost }})</small>
+	{% endif %}
+	</li>
 	{% endfor %}
     </ul>
 
@@ -99,10 +132,57 @@ Score:<br>
 <h2>Solr query</h2>
 <p><i><a target="_blank" href="{{query}}">{{query}}</a></i></p>
 
+<h3>Querystring (q)</h3>
+<p><i>{{querystring}}</i></p>
+
 <h3>Parsed query</h3>
 <p><i>{{parsed_query}}</i></p>
 
+<h3>Boost queries (bq)</h3>
+{% for boost_query in boost_queries %}
+
+<p>
+<i>{{boost_query}}</i>
+</p>
+{% endfor %}
+
+<h4>Parsed boost queries</h4>
+{% for boost_query in parsed_boost_queries %}
+
+<p>
+<i>{{boost_query}}</i>
+</p>
+{% endfor %}
+
+<h3>Filter queries (fq)</h3>
+{% for filter_query in filter_queries %}
+
+<p>
+<i>{{filter_query}}</i>
+</p>
+{% endfor %}
+
+<h4>Parsed filter queries</h4>
+{% for filter_query in parsed_filter_queries %}
+
+<p>
+<i>{{filter_query}}</i>
+</p>
+{% endfor %}
+
+
+<h3>Function queries / Boost functions (bf)</h3>
+{% for boostfunction in boostfuncs %}
+<p>
+<i>{{boostfunction}}</i>
+</p>
+
+{% endfor %}
+
 </div>
+
+<h3>Timing</h3>
+<pre>{{timing}}</pre>
 
 
 <div class="tabs-panel" id="ranking">
@@ -125,11 +205,35 @@ Score:<br>
 <h2>Visualization of ranking/scoring/term weights</h2>
 
 <p>
-Most relevant searched and matched fields: 
+Most relevant searched and matched fields:
+{% for field, values in fields.items %}
+{% if values.boost %}
+
+<span style="display: inline-block; background-color: {{ values.color }};">
+<strong>{{ field }}</strong> (boost: &lowast;{{values.boost}})
+</span>
+
+{% endif %}
+
+
+{% endfor %}
+</p>
+
+{% if boostfuncs %}
+
+<p>
+Boost functions:
+
 {% for field, values in fields.items %}
 
-<span style="background-color: {{values.color}};"><strong><i>{{ field }}</i></strong> (boost: {{values.boost}})</span>
+{% if not values.boost %}
+
+<span style="display: inline-block; background-color: {{ values.color }};"><strong>{{ field }}</strong></span>
+
+{% endif %}
+
 {% endfor %}
+{% endif %}
 </p>
 
 <p>Ranked documents scored by sum of term weights from most weighted fields matching the query:</p>
