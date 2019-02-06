@@ -12,7 +12,7 @@
 
 <ul class="tabs" data-tabs id="tabs">
 	<li class="tabs-title is-active"><a href="#summary" aria-selected="true">Summarization (with visualization)</a></li>
-	<li class="tabs-title"><a data-tabs-target="visualization" href="#visualization">Visualization (more compact chart)</a></li>
+	<li class="tabs-title"><a data-tabs-target="visualization" href="#visualization">Chart (more compact visualization)</a></li>
 	<li class="tabs-title"><a data-tabs-target="query" href="#query">Query details</a></li>
 	<li class="tabs-title"><a data-tabs-target="ranking" href="#ranking">Ranking details</a></li>
 </ul>
@@ -24,8 +24,8 @@
 
 <h2>Summary</h2>
 
-<h3>Relevant fields and their boost factors</h3>
-Field boost config of most relevant searched and matched fields and color map of boost functions:
+<h3>Most relevant fields</h3>
+Field boost config of most relevant searched and matched fields:
 
 <ul>
 {% for field, values in fields.items %}
@@ -65,7 +65,7 @@ Field boost config of most relevant searched and matched fields and color map of
 
 
 <h3>Summarization of ranking, scoring and term & field weights</h3>
-<p>Highest scored {{ count_docs }} of {{ numFound }} found documents:</p>
+<p>Highest scored {{ count_docs }} of {{ numFound }} found documents for <a title="Show query details" href="#query">Solr query</a> with Querystring <i>{{querystring}}</i>:</p>
 
 
 <table>
