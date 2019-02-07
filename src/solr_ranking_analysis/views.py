@@ -270,7 +270,7 @@ def index(request):
 			parsed_filter_queries = r['debug']['parsed_filter_queries']
 
 		if 'timing' in r['debug']:
-			timing = r['debug']['timing']
+			timing = json.dumps(r['debug']['timing'], indent=4)
 		
 		fields={}
 		docs=[]
