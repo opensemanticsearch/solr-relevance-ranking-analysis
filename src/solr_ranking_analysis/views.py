@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 from django.http import HttpResponse 
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django import forms
 
@@ -215,6 +216,17 @@ def index(request):
 	form = SearchForm(request.GET) # A form bound to the POST data
 	if form.is_valid():
 		query = form.cleaned_data['query']
+
+	# prevent misuse as HTTP proxy:
+	allowed = False
+
+	# check if URI / Solr server / core is accessable
+	for server in config['solr']:
+		if query.startswith(server):
+			allowed = True
+
+	if not allowed:
+		raise PermissionDenied
 
 
 	numFound = None
