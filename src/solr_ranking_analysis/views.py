@@ -169,8 +169,12 @@ def summarize_fields(nodes,fields={}):
 						fields[fieldname] = {}
 	
 						boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
+						
+						if boost == None:
+							boost = 1
 	
 						fields[fieldname]['boost'] = boost
+						
 						colorindex = len(fields)-1
 						if colorindex > len(colors)-1:
 							colorindex = len(colors)-1
