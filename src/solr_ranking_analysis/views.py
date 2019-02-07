@@ -330,10 +330,20 @@ def index(request):
 					if ' = weight(' in line:
     	                
 						data['type'] = 'weight'
-						prefix = ' = weight('
-						data['fieldname'] = line[line.find(prefix)+len(prefix) : line.find(':') ]
+
+						if ' = weight(Synonym(' in line:
+							prefix = ' = weight(Synonym('
+							data['fieldname'] = line[line.find(prefix)+len(prefix) : line.find(':') ]
     					
-						data['term'] = line[ line.find(':')+1 : line.rfind(' in ') ]
+							data['term'] = line[ line.find(':')+1 : line.rfind(') in ') ]
+							# change further fieldnames from multiple terms (synonyms) to separator
+							data['term'] = data['term'].replace(' ' + data['fieldname'] + ':', ' | ')
+
+						else:
+							prefix = ' = weight('
+							data['fieldname'] = line[line.find(prefix)+len(prefix) : line.find(':') ]
+    					
+							data['term'] = line[ line.find(':')+1 : line.rfind(' in ') ]
     
     
 					#is child					
