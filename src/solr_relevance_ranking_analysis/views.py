@@ -205,7 +205,7 @@ def index(request):
 			}
 
 	# read config from config file
-	configfilename = '/etc/opensemanticsearch/apps/ranking_analysis/config.json'
+	configfilename = '/etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json'
 	if os.path.isfile(configfilename):
 		
 		f = open(configfilename)
@@ -405,7 +405,7 @@ def index(request):
 			
 			docs.append(doc_analysis)
     
-	return render(request, 'solr_ranking_analysis/solr_ranking_analysis.html', 
+	return render(request, 'solr_relevance_ranking_analysis/solr_relevance_ranking_analysis.html', 
     		{
     			"numFound": numFound,
     			"docs": docs,
