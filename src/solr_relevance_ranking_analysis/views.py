@@ -219,6 +219,10 @@ def index(request):
 
 	# prevent misuse as HTTP proxy:
 	allowed = False
+	
+	# if empty query, allow access to empty form
+	if not query:
+		allowed = True
 
 	# check if URI / Solr server / core is accessable
 	for server in config['solr']:
