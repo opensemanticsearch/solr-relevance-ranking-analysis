@@ -59,17 +59,17 @@ You can run this web app in a Docker container or run it by Python 3 as standalo
 Docker
 ------
 
-If you don't want to build the image yourself from sources (see section "Build"), download the Docker image and load it by
+Setup your Solr settings to the config file /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json like described in section "Config" below.
 
-docker load --input solr_relevance_ranking_analysis.tar
+If you don't want to build the Docker image yourself from sources (see section "Build"), the docker image will be downloaded automatically from the Docker repository of Open Semantic Search:
 
 If your Solr server runs on another host / IP, run the Docker container for example on port 8080 (the Docker image internally provides the web server of the app on Port 8000) and your local config file by
 
-docker run -p 8080:8000 -v /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json:/etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json solr_relevance_ranking_analysis
+docker run -p 8080:8000 -v /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json:/etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json opensemanticsearch/solr_relevance_ranking_analysis
 
 If your Solr server runs on localhost, you have to use --network host and the default Port 8000 instead of published port config (or change the Django port in a custom docker image build by config file "Dockerfile"):
 
-docker run --network host -v /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json:/etc/onsemanticsearch/apps/relevance_ranking_analysis/config.json solr_relevance_ranking_analysis
+docker run --network host -v /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json:/etc/onsemanticsearch/apps/relevance_ranking_analysis/config.json opensemanticsearch/solr_relevance_ranking_analysis
 
 
 Standalone app (Python Django web server)
