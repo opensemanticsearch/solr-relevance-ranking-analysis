@@ -75,9 +75,12 @@ docker run --network host -v /etc/opensemanticsearch/apps/relevance_ranking_anal
 Standalone app (Python Django web server)
 -----------------------------------------
 
+
 - Checkout this repository by
 
 git clone https://github.com/opensemanticsearch/solr-relevance-ranking-analysis.git
+
+- Setup your Solr settings to the config file /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json like described in section "Config" below.
 
 - Change to the directory with the preconfigured Django environment
 
@@ -92,6 +95,8 @@ Existing web server environment running Django
 ----------------------------------------------
 
 - Checkout this repository by git clone https://github.com/opensemanticsearch/solr-relevance-ranking-analysis.git
+
+- Setup your Solr settings to the config file /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json like described in section "Config" below.
 
 - Copy the app directory solr-relevance-ranking-analysis/src/solr_relevance_ranking_analysis to your Django apps directory
 
