@@ -17,9 +17,16 @@ Usage
 Configuration
 =============
 
-- Create the config file /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json (or copy the default config or skeleton from the repository to this destination).
+Config file
+-----------
 
-- Set your Solr server and core(s) URL(s) in option "solr" in config.json
+Create the config file /etc/opensemanticsearch/apps/relevance_ranking_analysis/config.json (or copy the default config or skeleton from the repository to this destination).
+
+
+Solr server settings
+--------------------
+
+Set your Solr server and core(s) URL(s) in option "solr" in config.json
 
 If you config only full select URL(s) for all Solr cores instead of only the Solr server URL, the tool can not misused as a HTTP proxy to the Solr API.
 
@@ -30,7 +37,10 @@ Example:
 }
 
 
-- Optional you can set custom title field(s) in option "title_fields" in config.json to see not only terms matching the search query and ID of found documents, but the title, too (if (one of the) field(s) is returned by Solr query results)
+Title fields (optional)
+-----------------------
+
+Optional you can set custom title field(s) in option "title_fields" in config.json to see not only terms matching the search query and ID of found documents, but the title, too (if (one of the) field(s) is returned by Solr query results)
 
 Example:
 
