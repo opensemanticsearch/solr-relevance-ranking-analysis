@@ -6,22 +6,18 @@
 
 {% load static from staticfiles %}
 
-	<link rel="stylesheet" href="{% static "css/foundation.css" %}" />
-	<script src="{% static "js/vendor/modernizr.js" %}"></script>
-
-	<script src="{% static "stdlib.js" %}"></script>
+	<link rel="stylesheet" href="{% static "foundation/css/foundation.css" %}" />
 
 </head>
 
 <body>
-<div class="row">
+<div class="rowx">
 {% block content %}{% endblock content %}
 </div>
 
-	<script src="{% static "js/vendor/jquery.js" %}"></script>
-	<script src="{% static "js/foundation.min.js" %}"></script>
-	<script src="{% static "js/foundation/foundation.topbar.js" %}"></script>
-	<script src="{% static "js/foundation/foundation.magellan.js" %}"></script>	
+	<script src="{% static "foundation/js/vendor/jquery.js" %}"></script>
+	<script src="{% static "foundation/js/vendor/what-input.js" %}"></script>
+	<script src="{% static "foundation/js/vendor/foundation.min.js" %}"></script>
 
 	<script>
 	    $(document).foundation();
