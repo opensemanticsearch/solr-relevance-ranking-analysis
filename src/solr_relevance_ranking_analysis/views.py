@@ -15,45 +15,27 @@ class SearchForm(forms.Form):
 	query = forms.CharField(widget=forms.TextInput, label="Solr request URL (full Solr select query)", required=False)
 
 
-# set other than the first children of max off to inactive
-# for later analysis on "max of" only first (max) child
-def maxof(data, results = [], parent=0):
+# filter inactive children of "max of"
+def maxof(data, results = [], parent=0, max_of_value = 0):
 
-	parent_type = None
-
-	# get type of parent
 	for entry in data:
 
-		if entry['linenumber'] == parent:
+		if entry['parentline'] == parent:
+
+			max_of = False
 			if 'type' in entry:
-				parent_type = entry['type']
+				if entry['type'] == "max":
+					max_of = True
 
-	max_score = 0
-	max_scored_child = None
+			if entry['numvalue'] >= max_of_value:
 
-	# get highest scored child
-	for entry in data:
+				results.append(entry)
 
-		if entry['parentline'] == parent:
-			if entry['numvalue'] > max_score:
-				max_score = entry['numvalue']
-				max_scored_child = entry['linenumber']
-
-	# set inactive children to inactive and append all to results    
-	for entry in data:
-
-		if entry['parentline'] == parent:
-
-			# set all childs except the highest scored to inactive
-			if parent_type == "max":
-
-				if not entry['linenumber'] == max_scored_child:
-					entry['inactive'] = True
-
-			results.append(entry)
-
-			# recursive analysis of children
-			data, results = maxof(data, results, parent=entry['linenumber'])
+				# recursive analysis of children
+				if max_of:
+					data, results = maxof(data, results, parent=entry['linenumber'], max_of_value=entry['numvalue'])
+				else:
+					data, results = maxof(data, results, parent=entry['linenumber'], max_of_value=0)
 
 	return data, results
 
@@ -105,46 +87,45 @@ def summarize(nodes, fields, maxscore):
 	summarized_score = 0
 
 	for node in nodes:
-		if not 'inactive' in node:
 
-			if 'type' in node:
-				
-				if node['type'] == 'weight':
-	
-					summarized_score += node['numvalue']
-	
-					boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
-					data = {}
-					data['term'] = node['term']
-					data['fieldname'] = node['fieldname']
-	
-					fieldname = node['fieldname']
-					if fieldname in fields:
-						data['fieldcolor'] = fields[fieldname]['color']
+		if 'type' in node:
+			
+			if node['type'] == 'weight':
 
-					data['score'] = round( node['numvalue'], 2)
-					data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
-					data['boost'] = boost
-					data['idf'] = idf
-					data['tfNorm'] = tfNorm
-	
-					summarization.append(data)
+				summarized_score += node['numvalue']
 
-				if node['type'] == 'FunctionQuery':
-	
-					summarized_score += node['numvalue']
-	
-					data = {}
-					data['term'] = node['function_query']
-					data['fieldname'] = 'FunctionQuery'
-	
-					fieldname = node['function_query']
-					if fieldname in fields:
-						data['fieldcolor'] = fields[fieldname]['color']
-					data['score'] = round( node['numvalue'], 2)
-					data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
-	
-					summarization.append(data)
+				boost, idf, tfNorm = get_scorevalues(nodes, node['linenumber'])
+				data = {}
+				data['term'] = node['term']
+				data['fieldname'] = node['fieldname']
+
+				fieldname = node['fieldname']
+				if fieldname in fields:
+					data['fieldcolor'] = fields[fieldname]['color']
+
+				data['score'] = round( node['numvalue'], 2)
+				data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
+				data['boost'] = boost
+				data['idf'] = idf
+				data['tfNorm'] = tfNorm
+
+				summarization.append(data)
+
+			if node['type'] == 'FunctionQuery':
+
+				summarized_score += node['numvalue']
+
+				data = {}
+				data['term'] = node['function_query']
+				data['fieldname'] = 'FunctionQuery'
+
+				fieldname = node['function_query']
+				if fieldname in fields:
+					data['fieldcolor'] = fields[fieldname]['color']
+				data['score'] = round( node['numvalue'], 2)
+				data['score_scaled'] = scale_score(fullsize=800, value=node['numvalue'], maxvalue=maxscore)
+
+				summarization.append(data)
 
 
 	#if round(summarized_score,4) < round(score,4):
@@ -196,6 +177,7 @@ def summarize_fields(nodes,fields={}):
 						fields[fieldname]['color'] = colors[colorindex]
 
 	return fields
+
 
 def index(request):
 
